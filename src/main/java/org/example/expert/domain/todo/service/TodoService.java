@@ -53,7 +53,7 @@ public class TodoService {
 
         // startDate 나 endDate 가 하나라도 null 일때 전체 조회
         if (startDate == null || endDate == null) {
-            startDate = LocalDateTime.MIN;
+            startDate = LocalDateTime.of(1000, 1, 1, 0, 0);
             endDate = LocalDateTime.now();
         }
 
