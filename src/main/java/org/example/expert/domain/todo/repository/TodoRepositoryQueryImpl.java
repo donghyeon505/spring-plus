@@ -1,5 +1,6 @@
 package org.example.expert.domain.todo.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -46,6 +47,20 @@ public class TodoRepositoryQueryImpl implements TodoRepositoryQuery {
         LocalDateTime start = condition.startDate() != null ? condition.startDate().atStartOfDay() : null;
         LocalDateTime end = condition.endDate() != null ? condition.endDate().atTime(LocalTime.MAX) : null;
 
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (start != null && end != null) {
+            builder.and(todo.createdAt.between(start, end));
+        }
+
+        if (hasText(condition.keyword())) {
+            builder.and(todo.title.contains(condition.keyword()));
+        }
+
+        if (hasText(condition.managerNickname())) {
+            builder.and(user.nickname.contains(condition.managerNickname()));
+        }
+
         List<TodoSearchResponse> content = queryFactory
                 .select(Projections.constructor(TodoSearchResponse.class,
                         todo.title,
@@ -56,12 +71,7 @@ public class TodoRepositoryQueryImpl implements TodoRepositoryQuery {
                 .leftJoin(todo.managers, manager)
                 .leftJoin(manager.user, user)
                 .leftJoin(todo.comments, comment)
-                .where(
-                        start != null ? todo.createdAt.goe(start) : null,
-                        end != null ? todo.createdAt.loe(end) : null,
-                        hasText(condition.keyword()) ? todo.title.contains(condition.keyword()) : null,
-                        hasText(condition.managerNickname()) ? user.nickname.contains(condition.managerNickname()) : null
-                )
+                .where(builder)
                 .groupBy(todo.id, todo.title)
                 .orderBy(todo.createdAt.desc())
                 .offset(pageable.getOffset())
@@ -74,12 +84,7 @@ public class TodoRepositoryQueryImpl implements TodoRepositoryQuery {
                 .leftJoin(todo.managers, manager)
                 .leftJoin(manager.user, user)
                 .leftJoin(todo.comments, comment)
-                .where(
-                        start != null ? todo.createdAt.goe(start) : null,
-                        end != null ? todo.createdAt.loe(end) : null,
-                        hasText(condition.keyword()) ? todo.title.contains(condition.keyword()) : null,
-                        hasText(condition.managerNickname()) ? user.nickname.contains(condition.managerNickname()) : null
-                );
+                .where(builder);
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
