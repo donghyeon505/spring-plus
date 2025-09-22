@@ -97,6 +97,14 @@ public class TodoService {
 
     public Page<TodoSearchResponse> searchTodos(Pageable pageable, TodoSearchCondition condition) {
 
+        if (condition.keyword() == null && condition.managerNickname() == null) {
+            throw new InvalidRequestException("검색 키워드 또는 담당자 닉네임 중 하나는 반드시 입력해야 합니다.");
+        }
+
+        if (condition.keyword() != null && condition.managerNickname() != null) {
+            throw new InvalidRequestException("keyword와 managerNickname은 동시에 입력할 수 없습니다.");
+        }
+
         return todoRepository.searchByKeywordOrManagerName(pageable, condition);
     }
 }
