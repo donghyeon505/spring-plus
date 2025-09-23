@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(request -> request.getRequestURI().startsWith("/auth")).permitAll()
+                        .requestMatchers("/auth/**", "/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
